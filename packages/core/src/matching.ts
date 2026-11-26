@@ -36,9 +36,6 @@ export function computeMatching(
   today: string
 ): Transfer[] {
   const siteMap = new Map<string, Site>(sites.map((s) => [s.id, s]));
-  const cellMap = new Map<string, CellAnalysis>(
-    cells.map((c) => [`${c.siteId}:${c.group}`, c])
-  );
 
   // Clone batches for simulation so we can mutate units allocated
   const donorBatches: SimulatedDonorBatch[] = batches.map((b) => ({
@@ -94,8 +91,8 @@ export function computeMatching(
       .slice(0, 7)
       .reduce((s, d) => s + d.mean, 0);
 
-    // Usable units over 7 days in FEFO
-    let usable7d = recipient.unitsOnHand;
+    // Usable units over 7 days in FEFO (exclude units projected to expire unused)
+    const usable7d = Math.max(0, recipient.unitsOnHand - recipient.wastageUnits);
     // Estimated need to bring cover to 7 days + buffer
     let unitsNeeded = Math.ceil(forecast7d + bufferUnits - usable7d);
     if (unitsNeeded <= 0) continue;

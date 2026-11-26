@@ -6,5 +6,13 @@
     "build": "pnpm --filter @bloodnet/web build",
     "start": "pnpm --filter @bloodnet/web start",
     "test": "pnpm --filter @bloodnet/core test"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "eslint-config-next": "^16.4.6"
   }
 }

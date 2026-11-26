@@ -13,14 +13,16 @@ export function applyEmergency(
     label: `Emergency Trauma Influx at ${targetSiteId}`,
   };
 
-  // Drain 30% of existing stock at target site
-  const updatedBatches = world.batches.map((b) => {
-    if (b.siteId === targetSiteId) {
-      const remainingUnits = Math.max(0, Math.floor(b.units * 0.7));
-      return { ...b, units: remainingUnits };
-    }
-    return { ...b };
-  }).filter((b) => b.units > 0);
+  // Drain 30% of existing stock at target site without mutating input batches
+  const updatedBatches = world.batches
+    .map((b) => {
+      if (b.siteId === targetSiteId) {
+        const remainingUnits = Math.max(0, Math.floor(b.units * 0.7));
+        return { ...b, units: remainingUnits };
+      }
+      return { ...b };
+    })
+    .filter((b) => b.units > 0);
 
   return {
     ...world,
@@ -32,11 +34,15 @@ export function applyEmergency(
 export function applyTransfer(world: World, transfer: Transfer): World {
   let unitsToMove = transfer.units;
   const newBatches: Batch[] = [];
-  let nextBatchId = Date.now();
-
   const updatedBatches: Batch[] = [];
+  let seq = 1;
 
-  for (const b of world.batches) {
+  // Sort batches by expiry date ascending so FEFO applies deterministically
+  const sortedBatches = [...world.batches].sort((a, b) =>
+    a.expiryDate.localeCompare(b.expiryDate)
+  );
+
+  for (const b of sortedBatches) {
     if (
       unitsToMove > 0 &&
       b.siteId === transfer.fromSiteId &&
@@ -44,23 +50,23 @@ export function applyTransfer(world: World, transfer: Transfer): World {
       transfer.batchIds.includes(b.id)
     ) {
       const take = Math.min(b.units, unitsToMove);
-      b.units -= take;
+      const remaining = b.units - take;
       unitsToMove -= take;
 
-      // Create new batch at recipient site
+      // Create new batch at recipient site with deterministic ID and preserved expiry
       newBatches.push({
-        id: `moved-${nextBatchId++}`,
+        id: `moved-${transfer.id}-${b.id}-${seq++}`,
         siteId: transfer.toSiteId,
         group: transfer.toGroup,
         units: take,
-        expiryDate: b.expiryDate, // Expiry preserved
+        expiryDate: b.expiryDate,
       });
 
-      if (b.units > 0) {
-        updatedBatches.push(b);
+      if (remaining > 0) {
+        updatedBatches.push({ ...b, units: remaining });
       }
     } else {
-      updatedBatches.push(b);
+      updatedBatches.push({ ...b });
     }
   }
 

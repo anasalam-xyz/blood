@@ -74,7 +74,7 @@ export function DetailPanel({
   const style = getRiskColorClass(cell.risk);
 
   // Check if there are any recommended transfers where this cell is recipient
-  const incomingTransfer = matchingTransfers.find(
+  const incomingTransfers = matchingTransfers.filter(
     (t) => t.toSiteId === site.id && t.toGroup === cell.group
   );
 
@@ -126,9 +126,12 @@ export function DetailPanel({
         </div>
       </div>
 
-      {/* Transfer Recommendation Action Card */}
-      {incomingTransfer && (
-        <div className="p-3.5 rounded-lg border border-blue-500/40 bg-blue-950/30 text-xs">
+      {/* Transfer Recommendation Action Cards */}
+      {incomingTransfers.map((incomingTransfer) => (
+        <div
+          key={incomingTransfer.id}
+          className="p-3.5 rounded-lg border border-blue-500/40 bg-blue-950/30 text-xs"
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="font-semibold text-blue-300 flex items-center gap-1.5">
               <span>🚚</span> Recommended Transfer
@@ -156,7 +159,7 @@ export function DetailPanel({
             </button>
           </div>
         </div>
-      )}
+      ))}
 
       {/* Forecast Chart */}
       <div>
@@ -169,7 +172,7 @@ export function DetailPanel({
           </span>
         </div>
         <div className="h-44 w-full bg-slate-950/40 rounded p-1 border border-slate-800">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={160}>
             <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
               <XAxis dataKey="day" stroke="#94a3b8" fontSize={10} tickLine={false} />
