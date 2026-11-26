@@ -1,0 +1,10 @@
+{
+  "name": "bloodnet-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @bloodnet/web dev",
+    "build": "pnpm --filter @bloodnet/web build",
+    "start": "pnpm --filter @bloodnet/web start",
+    "test": "pnpm --filter @bloodnet/core test"
+  }
+}
